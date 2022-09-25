@@ -1,11 +1,9 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
-
 import 'package:dictionary_app/words.dart';
 
 class DetailPage extends StatefulWidget {
   Words word;
-  DetailPage({required this.word});
+  DetailPage(this.word);
 
   @override
   State<DetailPage> createState() => _DetailPageState();

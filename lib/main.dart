@@ -1,3 +1,4 @@
+import 'package:dictionary_app/databaseAO.dart';
 import 'package:dictionary_app/detailPage.dart';
 import 'package:dictionary_app/words.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(),
     );
@@ -28,19 +30,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool isSearchDo = false;
-  String searchWord = '';
+  String searchingWord = '';
 
   Future<List<Words>> showAllWords() async {
-    var wordsList = <Words>[];
+    var wordsList = await WordsDatabaseAO().allWords();
+    return wordsList;
+  }
 
-    var word1 = Words(1, 'door', 'kapı');
-    var word2 = Words(1, 'doors', 'kapıasd');
-    var word3 = Words(1, 'doorda', 'kapasdı');
-
-    wordsList.add(word1);
-    wordsList.add(word2);
-    wordsList.add(word3);
-
+  Future<List<Words>> searchWord(String searchingWord) async {
+    var wordsList = await WordsDatabaseAO().searchWord(searchingWord);
     return wordsList;
   }
 
@@ -48,13 +46,24 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: isSearchDo ?
+         TextField(
+                decoration: InputDecoration(hintText: 'Search here'),
+                onChanged: (resultSearch) {
+                  print('resultSearch : $resultSearch');
+                  setState(() {
+                    searchingWord = resultSearch;
+                  });
+                },
+              )
+            : Text('Dictionary App'),
         actions: [
           isSearchDo
               ? IconButton(
                   onPressed: () {
                     setState(() {
                       isSearchDo = false;
-                      searchWord = '';
+                      searchingWord = '';
                     });
                   },
                   icon: Icon(Icons.cancel))
@@ -66,21 +75,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                   icon: Icon(Icons.search))
         ],
-        centerTitle: true,
-        title: isSearchDo
-            ? TextField(
-                decoration: InputDecoration(hintText: 'Search here'),
-                onChanged: (resultSearch) {
-                  print('resultSearch : $resultSearch');
-                  setState(() {
-                    searchWord = resultSearch;
-                  });
-                },
-              )
-            : Text('Dictionary App'),
       ),
       body: FutureBuilder<List<Words>>(
-        future: showAllWords(),
+        future: isSearchDo ? searchWord(searchingWord) : showAllWords(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             var wordList = snapshot.data;
@@ -93,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DetailPage(word:word),
+                          builder: (context) => DetailPage(word),
                         ));
                   },
                   child: SizedBox(
